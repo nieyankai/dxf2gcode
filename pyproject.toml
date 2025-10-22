@@ -1,0 +1,5 @@
+[build-system]
+# 构建时需要的工具（setuptools + wheel）
+requires = ["setuptools>=61.0", "wheel"]
+# 构建后端（使用setuptools的标准后端）
+build-backend = "setuptools.build_meta"

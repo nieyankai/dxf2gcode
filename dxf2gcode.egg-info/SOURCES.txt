@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+setup.cfg
+dxf2gcode/__init__.py
+dxf2gcode.egg-info/PKG-INFO
+dxf2gcode.egg-info/SOURCES.txt
+dxf2gcode.egg-info/dependency_links.txt
+dxf2gcode.egg-info/requires.txt
+dxf2gcode.egg-info/top_level.txt
+dxf2gcode/core/__init__.py
+dxf2gcode/core/config.py
+dxf2gcode/core/dxf_parser.py
+dxf2gcode/core/gcode_generator.py

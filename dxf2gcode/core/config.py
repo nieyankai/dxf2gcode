@@ -12,10 +12,10 @@ class Config:
         self.delay = 0.2       # 落笔延时（秒）
         self.coord_mode = "G90"  # 坐标模式：G90（绝对）/ G91（相对）
         self.unit = "G21"       # 单位：G21（毫米）/ G20（英寸）
-        self.speed_mode = "G94" # 进给模式：G94（mm/min）
+        self.speed_mode = "G94"    # 进给模式：G94（mm/min）
         self.spindle_speed = 300  # 主轴转速（r/min），用于M03指令的S参数
         # 笔纸距离
-        self.paper_level = 0
+        self.paper_level = 0     #纸张高度
         self.pendown_speed = 50  #落笔速度
         # 结束配置
         self.home_after_finish = True  # 结束后回原点

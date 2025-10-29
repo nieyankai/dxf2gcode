@@ -5,6 +5,7 @@
  written permission of the copyright owner.
 '''
 import ezdxf
+from ezdxf.entities import Point, Circle
 import math
 from typing import List, Dict, Union
 from .config import Config
@@ -12,6 +13,51 @@ from .config import Config
 class DXFParser:
     def __init__(self, config: Config = None):
         self.config = config or Config()  # 接收外部配置，默认用默认配置
+
+    def parse_point(self, entity: ezdxf.entities.Point) -> List[Dict]:
+        x = point.dxf.location.x
+        y = point.dxf.location.y
+        return {
+            "type": "point",
+            "params": {
+                "x": round(x, 2),
+                "y": round(y, 2)
+            }
+        }
+
+    def parse_circle(self, entity: ezdxf.entities.Circle) -> List[Dict]:
+        center = entity.dxf.center  # 圆心坐标 (x, y)
+        radius = entity.dxf.radius  # 半径
+        cx, cy = center.x, center.y
+
+        segments = []
+        start_x = cx + radius
+        start_y = cy
+        end_x = cx - radius
+        end_y = cy
+
+        segments.extend([
+            {
+                "type": "arc",
+                "params": {
+                    "start_x": start_x, "start_y": start_y,
+                    "end_x": end_x, "end_y": end_y,
+                    "center_x": cx, "center_y": cy, "g_code": "G02"
+                }
+            },
+            {
+                "type": "arc",
+                "params": {
+                    "start_x": end_x, "start_y": end_y,
+                    "end_x": start_x, "end_y": start_y,
+                    "center_x": cx, "center_y": cy, "g_code": "G02"
+                }
+            },
+        ])
+
+        return segments
+
+
 
     def parse_line(self, entity: ezdxf.entities.Line) -> Dict:
         """解析直线实体，返回标准化参数"""
@@ -143,6 +189,9 @@ class DXFParser:
                 })
         return segments
 
+
+
+
     def parse_dxf(self, dxf_path: str) -> List[Dict]:
         """主解析函数：读取DXF，返回所有实体的标准化参数列表"""
         try:
@@ -161,4 +210,6 @@ class DXFParser:
                 entities.append(self.parse_arc(entity))
             elif isinstance(entity, ezdxf.entities.LWPolyline):
                 entities.extend(self.parse_lwpolyline(entity))
+            elif isinstance(entity, ezdxf.entities.Point):
+                entities.extend(self.parse_point(entity))
         return entities

@@ -26,8 +26,10 @@ class GCodeGenerator:
             "M05",
             f"G00 X{params['start_x']} Y{params['start_y']}",
             f"M03 S{self.config.spindle_speed}",
+            f"G01 Z{self.config.paper_level} {self.config.pendown_speed}",
             f"G4 P{self.config.delay}",
             f"G01 X{params['end_x']} Y{params['end_y']} F{self.config.feed_rate}",
+            f"G00 Z0",
             "M05",
             ""
         ]
@@ -40,8 +42,10 @@ class GCodeGenerator:
             "M05",
             f"G00 X{params['start_x']} Y{params['start_y']}",
             f"M03 S{self.config.spindle_speed}",
+            f"G01 Z{self.config.paper_level} {self.config.pendown_speed}",
             f"G4 P{self.config.delay}",
             f"{params['g_code']} X{params['end_x']} Y{params['end_y']} I{i:.2f} J{j:.2f} F{self.config.feed_rate}",
+            f"G00 Z0",
             "M05",
             ""
         ]

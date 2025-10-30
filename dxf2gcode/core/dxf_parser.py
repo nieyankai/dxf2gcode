@@ -20,8 +20,8 @@ class DXFParser:
         return {
             "type": "point",
             "params": {
-                "x": round(x, 2),
-                "y": round(y, 2)
+                "x": x,
+                "y": y
             }
         }
 
@@ -66,10 +66,10 @@ class DXFParser:
         return {
             "type": "line",
             "params": {
-                "start_x": round(start.x, 2),
-                "start_y": round(start.y, 2),
-                "end_x": round(end.x, 2),
-                "end_y": round(end.y, 2)
+                "start_x": start.x,
+                "start_y": start.y,
+                "end_x": end.x,
+                "end_y": end.y
             }
         }
 
@@ -81,10 +81,10 @@ class DXFParser:
         end_angle = math.radians(entity.dxf.end_angle)
 
         # 计算起点/终点坐标
-        start_x = round(center.x + radius * math.cos(start_angle), 2)
-        start_y = round(center.y + radius * math.sin(start_angle), 2)
-        end_x = round(center.x + radius * math.cos(end_angle), 2)
-        end_y = round(center.y + radius * math.sin(end_angle), 2)
+        start_x = center.x + radius * math.cos(start_angle)
+        start_y = center.y + radius * math.sin(start_angle)
+        end_x = center.x + radius * math.cos(end_angle)
+        end_y = center.y + radius * math.sin(end_angle)
 
         # 叉积判断旋转方向（G02/G03）
         vec1_x = center.x - start_x
@@ -101,8 +101,8 @@ class DXFParser:
                 "start_y": start_y,
                 "end_x": end_x,
                 "end_y": end_y,
-                "center_x": round(center.x, 2),
-                "center_y": round(center.y, 2),
+                "center_x": center.x,
+                "center_y": center.y,
                 "g_code": g_code
             }
         }
@@ -187,6 +187,17 @@ class DXFParser:
                         "end_x": end_x, "end_y": end_y
                     }
                 })
+        if entity.is_closed:
+            start_x, start_y, start_width, end_width, bulge = vertices[-1]
+            end_x, end_y, start_width1, end_width1, bulge1 = vertices[0]
+            segments.append({
+                "type": "line",
+                "params": {
+                    "start_x": start_x, "start_y": start_y,
+                    "end_x": end_x, "end_y": end_y
+                }
+            })
+
         return segments
 
 
@@ -210,6 +221,6 @@ class DXFParser:
                 entities.append(self.parse_arc(entity))
             elif isinstance(entity, ezdxf.entities.LWPolyline):
                 entities.extend(self.parse_lwpolyline(entity))
-            elif isinstance(entity, ezdxf.entities.Point):
-                entities.extend(self.parse_point(entity))
+            elif isinstance(entity, ezdxf.entities.Circle):
+                entities.extend(self.parse_circle(entity))
         return entities

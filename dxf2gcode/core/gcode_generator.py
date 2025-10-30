@@ -15,44 +15,56 @@ class GCodeGenerator:
         """生成初始化G代码段"""
         return [
             f"{self.config.coord_mode} {self.config.unit} {self.config.speed_mode}",
-            "M05",
-            "G28 X0 Y0",
             ""
         ]
 
-    def generate_line_block(self, params: Dict) -> List[str]:
+    def generate_line_block(self, params: Dict, immediate: bool=False) -> List[str]:
         """生成直线G代码块"""
-        return [
+        init = [
+            f"G00 Z{self.config.spindle_level}",
             "M05",
-            f"G00 X{params['start_x']} Y{params['start_y']}",
+            f"G00 X{params['start_x']:.2f} Y{params['start_y']:.2f}",
             f"M03 S{self.config.spindle_speed}",
-            f"G01 Z{self.config.paper_level} {self.config.pendown_speed}",
+            f"G01 Z{self.config.working_level} F{self.config.pendown_speed}",
             f"G4 P{self.config.delay}",
-            f"G01 X{params['end_x']} Y{params['end_y']} F{self.config.feed_rate}",
-            f"G00 Z0",
-            "M05",
+        ]
+        draw = [
+            f"G01 X{params['end_x']:.2f} Y{params['end_y']:.2f} F{self.config.feed_rate}",
             ""
         ]
+        if immediate:
+            return draw
+        else:
+            return init + draw
 
-    def generate_arc_block(self, params: Dict) -> List[str]:
+
+
+    def generate_arc_block(self, params: Dict, immediate: bool=False) -> List[str]:
         """生成圆弧G代码块（计算I/J偏移）"""
         i = params['center_x'] - params['start_x']
         j = params['center_y'] - params['start_y']
-        return [
+        init = [
+            f"G00 Z{self.config.spindle_level}",
             "M05",
-            f"G00 X{params['start_x']} Y{params['start_y']}",
+            f"G00 X{params['start_x']:.2f} Y{params['start_y']:.2f}",
             f"M03 S{self.config.spindle_speed}",
-            f"G01 Z{self.config.paper_level} {self.config.pendown_speed}",
+            f"G01 Z{self.config.working_level} F{self.config.pendown_speed}",
             f"G4 P{self.config.delay}",
-            f"{params['g_code']} X{params['end_x']} Y{params['end_y']} I{i:.2f} J{j:.2f} F{self.config.feed_rate}",
-            f"G00 Z0",
-            "M05",
+        ]
+        draw = [
+            f"{params['g_code']} X{params['end_x']:.2f} Y{params['end_y']:.2f} I{i:.2f} J{j:.2f} F{self.config.feed_rate}",
             ""
         ]
+        if immediate:
+            return draw
+        else:
+            return init + draw
+
 
     def generate_finish_code(self) -> List[str]:
         """生成结束G代码段"""
         finish = [
+            f"G00 Z{self.config.spindle_level}",
             "M05",
         ]
         if self.config.home_after_finish:
@@ -69,11 +81,18 @@ class GCodeGenerator:
         # 拼接初始化代码
         full_gcode.extend(self.generate_init_code())
         # 拼接每个实体的代码块
-        for idx, entity in enumerate(entities, 1):
+        for idx, entity in enumerate(entities):
+            entity0 = entities[idx - 1] if idx > 0 else None;
             if entity["type"] == "line":
-                full_gcode.extend(self.generate_line_block(entity["params"]))
+                if entity0 and entity0["params"]["end_x"] == entity["params"]["start_x"] and entity0["params"]["end_y"] == entity["params"]["start_y"]:
+                    full_gcode.extend(self.generate_line_block(entity["params"], immediate=True))
+                else:
+                    full_gcode.extend(self.generate_line_block(entity["params"]))
             elif entity["type"] == "arc":
-                full_gcode.extend(self.generate_arc_block(entity["params"]))
+                if entity0 and entity0["params"]["end_x"] == entity["params"]["start_x"] and entity0["params"]["end_y"] == entity["params"]["start_y"]:
+                    full_gcode.extend(self.generate_arc_block(entity["params"], immediate=True))
+                else:
+                    full_gcode.extend(self.generate_arc_block(entity["params"]))
         # 拼接结束代码
         full_gcode.extend(self.generate_finish_code())
         return full_gcode

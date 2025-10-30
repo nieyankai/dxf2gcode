@@ -15,12 +15,13 @@ class Config:
         self.speed_mode = "G94"    # 进给模式：G94（mm/min）
         self.spindle_speed = 300  # 主轴转速（r/min），用于M03指令的S参数
         # 笔纸距离
-        self.paper_level = 0     #纸张高度
+        self.spindle_level = 5   #抬刀高度
+        self.working_level = 0   #操作高度
         self.pendown_speed = 50  #落笔速度
         # 结束配置
         self.home_after_finish = True  # 结束后回原点
         # 过滤配置
-        self.valid_entities = ["LINE", "ARC", "LWPOLYLINE", "POINT"]  # 支持的实体类型
+        self.valid_entities = ["LINE", "ARC", "LWPOLYLINE", "CIRCLE"]  # 支持的实体类型
 
 # 默认配置实例（外部可直接导入修改）
 default_config = Config()
